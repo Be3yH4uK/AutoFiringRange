@@ -74,13 +74,15 @@ void requestStageChange(Stage newStage)
 void loop() {
   
   // absolute domination of Settings button
-  //if (!digitalRead(BTN_SETTINGS_PIN))
-  //{
+  if (!digitalRead(BTN_SETTINGS_PIN))
+  {
+    srv.write(SERVO_MIN_ANGLE);
+    srv.write(SERVO_MAX_ANGLE);
   //  if (currentStage != sSettings)
   //    currentStage = sSettings;
   //  else
   //    currentStage = sInitial;
-  //}
+  }
 
   // stage loop
   switch(currentStage)
