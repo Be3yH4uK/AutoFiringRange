@@ -1,22 +1,27 @@
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
-#define SERVO_PIN 6
+#define SERVO_PIN 3
 #define SERVO_MIN_ANGLE 0
 #define SERVO_MAX_ANGLE 90
 
 #define SENSOR_PIN 7
 
-
-#define BTN_LEFT_PIN 3
+#define BTN_LEFT_PIN 1
 #define BTN_START_PIN 2
 #define BTN_RIGHT_PIN 4
 #define BTN_SETTINGS_PIN 5
 
-#define BUZZER_PIN 1
+#define BUZZER_PIN 6
+#define POWER_PIN A0
+#define POWER_LIMIT 3.
+#define POWER_SLP 1000
+#define SILENT_MODE_NOTIF_SLP 3000
 
-#define STRING_INITIAL_UP     "=== AFR V1.0 ==="
-#define STRING_INITIAL_DWN    "= PRESS  START ="
+#define STRING_SILENT_MODE_UP   "zZz  Silent  zZz"
+#define STRING_SILENT_MODE_DWN  " zZz  mode  zZz "
+#define STRING_INITIAL_UP       "=== AFR V1.0 ==="
+#define STRING_INITIAL_DWN      "= PRESS  START ="
 #define STRING_FIREPREPARE_UP   "=== AFR V1.0 ==="
 #define STRING_FIREPREPARE_DWN  "== GET  READY =="
 #define STRING_FIREPROCESS_UP   "SHOTS COUNT: 000"
@@ -42,9 +47,11 @@ long startTime, lastTime, elapsedTime;
 long hitCount = 0;
 bool isHitComing = false;
 char timeStr[10];
+bool silentMode = false;
 
 void setup() {
-  
+  lcd.begin(16, 2);
+ 
   pinMode(SERVO_PIN, OUTPUT);
   
   pinMode(SENSOR_PIN, INPUT);
@@ -57,7 +64,19 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
 
   srv.attach(SERVO_PIN);
-  
+
+  if (!digitalRead(BTN_SETTINGS_PIN))
+  {
+    silentMode = true;
+
+    lcd.setCursor(0, 0);
+    lcd.print(STRING_SILENT_MODE_UP);
+    lcd.setCursor(0, 1);
+    lcd.print(STRING_SILENT_MODE_DWN);
+
+    delay(SILENT_MODE_NOTIF_SLP);
+  }
+ 
   requestStageChange(sInitial);
 }
 
@@ -88,7 +107,7 @@ void loop() {
     case sInitial:
         if (currentStage != previousStage)
         {
-          lcd.begin(16, 2);
+          lcd.setCursor(0, 0);
           lcd.print(STRING_INITIAL_UP);
           lcd.setCursor(0, 1);
           lcd.print(STRING_INITIAL_DWN);
@@ -115,10 +134,11 @@ void loop() {
       
       //pre-delay
       delay(3000);
-      tone(BUZZER_PIN, 2000, 1000);
+      if (!silentMode)
+     {tone(BUZZER_PIN, 2000, 1000);
     
       delay(random(1000, 4000));
-      tone(BUZZER_PIN, 4000, 1000);
+      tone(BUZZER_PIN, 4000, 1000);}
     
       // init FireProcess stage
       startTime = millis();
